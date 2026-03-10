@@ -11,6 +11,24 @@ services:
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - evereg_data:/var/lib/postgresql/data
+    networks:
+      - evereg_network
   
+  app:
+    build: .
+    container_name: evereg_api
+    ports:
+      - 5000:5000
+    environment:
+      - DATABASE_URL=postgresql://evereg:evereg@db:5432/evereg
+    networks:
+      - evereg_network
+    depends_on:
+      - db
+
+networks:
+  evereg_network:
+    driver: bridge
+
 volumes:
   evereg_data:
