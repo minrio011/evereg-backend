@@ -4,14 +4,17 @@ import path from "path";
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
+    tls: {
+        rejectUnauthorized: false,
+    },
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
 });
 
 export const sendConfirmationEmail = async (
@@ -27,15 +30,15 @@ export const sendConfirmationEmail = async (
         html: `
             <h1>ลงทะเบียนสำเร็จ!</h1>
             <p>สวัสดีคุณ ${firstName}, ขอบคุณที่ลงทะเบียนร่วมกิจกรรมกับ Maybelline New York - Boba Boost Square</p>
-            <img src="cid:email_notification" style="width: 100%; max-width: 600px; height: auto;" />
+            // <img src="cid:email_notification" style="width: 100%; max-width: 600px; height: auto;" />
         `,
-        attachments: [
-            {
-                filename: "email_notification.png",
-                path: imagePath,
-                cid: "email_notification",
-            },
-        ],
+        // attachments: [
+        //     {
+        //         filename: "email_notification.png",
+        //         path: imagePath,
+        //         cid: "email_notification",
+        //     },
+        // ],
     };
 
     try {
