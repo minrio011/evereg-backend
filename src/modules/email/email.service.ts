@@ -3,11 +3,15 @@ import nodemailer from "nodemailer";
 import path from "path";
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
 });
 
 export const sendConfirmationEmail = async (
@@ -37,6 +41,7 @@ export const sendConfirmationEmail = async (
     try {
         await transporter.sendMail(mailOptions);
     } catch (error) {
+        console.error("--- Nodemailer Error Details:", error);
         throw new Error("Failed to send confirmation email.");
     }
 };
