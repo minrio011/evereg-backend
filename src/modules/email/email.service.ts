@@ -1,50 +1,45 @@
-
-import nodemailer from "nodemailer";
-import path from "path";
-
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false,
-    },
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-});
-
-export const sendConfirmationEmail = async (
-    email: string,
-    firstName: string
-) => {
-    const imagePath = path.resolve("./public/images/email_notification.png");
-
-    const mailOptions = {
-        from: '"Maybelline New York - Boba Boost Square" <noreply@maybelline.com>',
-        to: email,
+export const sendConfirmationEmail = async (email: string, firstName: string) => {
+    const url = 'https://api.brevo.com/v3/smtp/email';
+    
+    const data = {
+        sender: { 
+            name: "Maybelline New York", 
+            email: "phatthaphon.pl@gmail.com"
+        },
+        to: [{ email: email, name: firstName }],
         subject: `ยืนยันการลงทะเบียน - ${firstName}`,
-        html: `
-            <h1>ลงทะเบียนสำเร็จ!</h1>
-            <p>สวัสดีคุณ ${firstName}, ขอบคุณที่ลงทะเบียนร่วมกิจกรรมกับ Maybelline New York - Boba Boost Square</p>
-            // <img src="cid:email_notification" style="width: 100%; max-width: 600px; height: auto;" />
-        `,
-        // attachments: [
-        //     {
-        //         filename: "email_notification.png",
-        //         path: imagePath,
-        //         cid: "email_notification",
-        //     },
-        // ],
+        htmlContent: `
+            <div style="font-family: sans-serif; text-align: center; max-width: 600px; margin: auto;">
+                <h1 style="color: #e91e63;">ลงทะเบียนสำเร็จ!</h1>
+                <p>สวัสดีคุณ <b>${firstName}</b>, ขอบคุณที่ร่วมกิจกรรมกับเรา</p>
+                <img src="https://gasixulcmsspcnwhxwcv.supabase.co/storage/v1/object/public/images/email_notification.png" 
+                     style="width: 100%; border-radius: 10px;" />
+            </div>
+        `
     };
 
     try {
-        await transporter.sendMail(mailOptions);
-    } catch (error) {
-        console.error("--- Nodemailer Error Details:", error);
-        throw new Error("Failed to send confirmation email.");
+        console.log("--- Sending via Pure Fetch API ---");
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'api-key': process.env.BREVO_API_KEY as string,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            console.log("--- Success! Message ID:", result.messageId);
+        } else {
+            console.error("--- Brevo API Error:", result);
+            throw new Error("Failed to send email");
+        }
+    } catch (error: any) {
+        console.error("--- Fetch Error:", error.message);
+        throw error;
     }
 };
