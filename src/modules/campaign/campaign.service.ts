@@ -1,4 +1,4 @@
-import { convertToBangkokTime } from "../../utils/date.util";
+import { bangkokToUtcTimestamp, convertToBangkokTime } from "../../utils/date.util";
 import { query } from "../../configs/db";
 import { sendConfirmationEmail } from "../email/email.service";
 import { GetRegistrationQuerySchema, RegisterCampaignSchema } from "./campaign.schema";
@@ -78,15 +78,14 @@ export const getAllRegistration = async (params: GetRegistrationQuerySchema) => 
 
     if (start_date && end_date) {
         if (start_date === end_date) {
-            // Convert to UTC before querying
-            const utcDate = new Date(start_date).toISOString();
+            const utcDate = bangkokToUtcTimestamp(start_date);
             values.push(utcDate);
-            filterSql += ` AND e.event_date = $${values.length}`;
+            filterSql += ` AND e.event_date = $${values.length}::timestamp`;
         } else {
-            const utcStartDate = new Date(start_date).toISOString();
-            const utcEndDate = new Date(end_date).toISOString();
+            const utcStartDate = bangkokToUtcTimestamp(start_date);
+            const utcEndDate = bangkokToUtcTimestamp(end_date);
             values.push(utcStartDate, utcEndDate);
-            filterSql += ` AND e.event_date BETWEEN $${values.length - 1} AND $${values.length}`;
+            filterSql += ` AND e.event_date BETWEEN $${values.length - 1}::timestamp AND $${values.length}::timestamp`;
         }
     }
 
@@ -139,14 +138,14 @@ export const getAllRegistrationForExport = async (params: GetRegistrationQuerySc
     }
     if (start_date && end_date) {
         if (start_date === end_date) {
-            const utcDate = new Date(start_date).toISOString();
+            const utcDate = bangkokToUtcTimestamp(start_date);
             values.push(utcDate);
-            filterSql += ` AND e.event_date = $${values.length}`;
+            filterSql += ` AND e.event_date = $${values.length}::timestamp`;
         } else {
-            const utcStartDate = new Date(start_date).toISOString();
-            const utcEndDate = new Date(end_date).toISOString();
+            const utcStartDate = bangkokToUtcTimestamp(start_date);
+            const utcEndDate = bangkokToUtcTimestamp(end_date);
             values.push(utcStartDate, utcEndDate);
-            filterSql += ` AND e.event_date BETWEEN $${values.length - 1} AND $${values.length}`;
+            filterSql += ` AND e.event_date BETWEEN $${values.length - 1}::timestamp AND $${values.length}::timestamp`;
         }
     }
     if (search) {
